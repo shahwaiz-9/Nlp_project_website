@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeCheck - Real-Time Audio Sentiment Analyzer</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Favicon (Fallback to Emoji SVG) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
+</head>
+<body>
+    <!-- Background Animated Blobs -->
+    <div class="blob-container">
+        <div class="blob blob-purple"></div>
+        <div class="blob blob-cyan"></div>
+        <div class="blob blob-magenta"></div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 class="logo"><span class="glow-text">VibeCheck</span></h1>
+            <p class="subtitle">Speech Sentiment & Emotion AI Analyzer</p>
+        </header>
+
+        <!-- Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Side: Inputs -->
+            <section class="grid-col input-section">
+                <!-- Recorder Card -->
+                <div class="glass-card record-card" id="recorder-card-container">
+                    <div class="card-header">
+                        <div class="header-icon">🎙️</div>
+                        <h2>Record Live Audio</h2>
+                    </div>
+                    <p class="card-desc">Speak into your microphone to analyze your voice in real time.</p>
+                    
+                    <div class="visualizer-container">
+                        <canvas id="visualizer" width="400" height="100"></canvas>
+                        <div class="timer" id="recording-timer">00:00</div>
+                    </div>
+                    
+                    <div class="controls-container">
+                        <button class="btn btn-record" id="btn-record">
+                            <span class="btn-icon">●</span>
+                            <span class="btn-text">Start Recording</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Uploader Card -->
+                <div class="glass-card upload-card" id="uploader-card-container">
+                    <div class="card-header">
+                        <div class="header-icon">📁</div>
+                        <h2>Upload Audio File</h2>
+                    </div>
+                    <p class="card-desc">Upload an audio recording (.wav format) for sentiment analysis.</p>
+                    
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="drop-zone-content">
+                            <span class="drop-icon">📤</span>
+                            <p class="drop-text">Drag & drop your wav file here, or <span class="browse-link">browse</span></p>
+                            <span class="file-info" id="file-info">Only .wav files are supported</span>
+                        </div>
+                        <input type="file" id="file-input" accept=".wav" style="display: none;">
+                    </div>
+                    
+                    <div class="controls-container">
+                        <button class="btn btn-primary btn-wide" id="btn-analyze-upload" disabled>
+                            Analyze Selected File
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Output & History -->
+            <section class="grid-col output-section">
+                <!-- Results Card -->
+                <div class="glass-card results-card" id="results-card-container">
+                    <div class="card-header">
+                        <div class="header-icon">📊</div>
+                        <h2>Analysis Results</h2>
+                    </div>
+                    
+                    <!-- Placeholder State -->
+                    <div class="results-placeholder" id="results-placeholder">
+                        <div class="placeholder-icon">🧠</div>
+                        <p>Awaiting audio input...</p>
+                        <span>Record or upload an audio file to view real-time sentiment predictions.</span>
+                    </div>
+
+                    <!-- Loader State -->
+                    <div class="results-loader" id="results-loader" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Analyzing speech characteristics...</p>
+                        <span>Running convolutional inference pipeline...</span>
+                    </div>
+
+                    <!-- Content State -->
+                    <div class="results-content" id="results-content" style="display: none;">
+                        <!-- Primary Emotion Header -->
+                        <div class="primary-result">
+                            <div class="emotion-emoji" id="detected-emoji">😐</div>
+                            <div class="emotion-details">
+                                <span class="label">Detected Emotion</span>
+                                <h3 class="emotion-name" id="detected-emotion">Neutral</h3>
+                                <div class="confidence-container">
+                                    <span class="conf-label">Confidence:</span>
+                                    <span class="conf-val" id="detected-confidence">0%</span>
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-bar-fill" id="detected-bar" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emotion Breakdown -->
+                        <div class="emotion-breakdown">
+                            <h4>Full Probability Distribution</h4>
+                            <div class="breakdown-list" id="breakdown-list">
+                                <!-- Bars will be dynamically injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Card -->
+                <div class="glass-card history-card" id="history-card-container">
+                    <div class="card-header header-with-action">
+                        <div class="header-title-wrapper">
+                            <div class="header-icon">📜</div>
+                            <h2>Session History</h2>
+                        </div>
+                        <button class="btn btn-text-only" id="btn-clear-history" style="display: none;">
+                            Clear All
+                        </button>
+                    </div>
+                    
+                    <div class="history-list-wrapper">
+                        <table class="history-table" id="history-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Source</th>
+                                    <th>Prediction</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                        <div class="history-empty" id="history-empty">
+                            <p>No analysis history for this session.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Built with Flask, Keras CNN, and Glassmorphism CSS | © 2026 VibeCheck</p>
+        </footer>
+    </div>
+
+    <!-- JS Script -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

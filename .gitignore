@@ -1,0 +1,31 @@
+# --- Virtual Environment ---
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# --- Python Cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- IDE/Editor Configurations ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- Flask & Environment Variables ---
+instance/
+.env
+
+# --- Testing & Coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- Distribution/Packaging ---
+dist/
+build/
+*.egg-info/

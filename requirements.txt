@@ -1,0 +1,8 @@
+Flask
+librosa
+scikit-learn
+joblib
+tensorflow-cpu
+soundfile
+numpy
+gunicorn
