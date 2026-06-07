@@ -1,3 +1,7 @@
+
+
+
+# Keep these as they are fast
 from flask import Flask, request, jsonify, render_template, session
 import os
 import uuid
@@ -5,26 +9,29 @@ import datetime
 import numpy as np
 import librosa
 import joblib
-import tensorflow as tf
+import tensorflow as tf 
 
 app = Flask(__name__)
-# Use a secure static key or dynamic. We will use a static one so sessions persist locally.
 app.secret_key = "nlp_sentiment_analysis_secret_key_9c15"
 
-# Setup upload folder
+
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Load model, scaler, and encoder once at startup
-print("Loading model and preprocessors...")
+
 scaler = joblib.load('scaler.pkl')
 encoder = joblib.load('encoder.pkl')
-model = tf.keras.models.load_model('cnn_model.h5')
 classes = encoder.categories_[0].tolist()
-print("Successfully loaded ML pipeline. Classes:", classes)
 
+model = None 
 
+def get_model():
+    global model
+    if model is None:
+        print("Loading model into memory...")
+        model = tf.keras.models.load_model('cnn_model.h5')
+    return model
 
 
 # Feature extraction helper functions matching Refined_Project_(2).ipynb
@@ -104,6 +111,8 @@ def analyze():
         
         # Reshape to (1, 2376, 1) for the CNN
         model_input = scaled_features.reshape(1, 2376, 1)
+
+        model = get_model()
         
         # Model predict
         predictions = model.predict(model_input)
